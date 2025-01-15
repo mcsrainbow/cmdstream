@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terminal Emulator</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>
+            <i class="fas fa-terminal"></i>
+            <span>Terminal Emulator</span>
+        </h2>
+        <div class="controls">
+            <div class="input-wrapper">
+                <input type="text" id="command" placeholder="Enter command..." spellcheck="false">
+                <button class="clear-button" id="clearBtn" aria-label="Clear input">×</button>
+            </div>
+            <button onclick="toggleCommand()" id="actionBtn" title="Run">
+                <div class="button-content">
+                    <i class="fas fa-play"></i>
+                    <span>Run</span>
+                </div>
+            </button>
+        </div>
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <div class="terminal-button red"></div>
+                    <div class="terminal-button yellow"></div>
+                    <div class="terminal-button green"></div>
+                </div>
+            </div>
+            <div class="terminal-content">
+                <div id="output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const commandInput = document.getElementById('command');
+        const clearBtn = document.getElementById('clearBtn');
+        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        
+        let currentProcessId = null;
+        const actionBtn = document.getElementById('actionBtn');
+
+        function toggleCommand() {
+            if (currentProcessId) {
+                stopCommand();
+            } else {
+                executeCommand();
+            }
+        }
+
+        function executeCommand() {
+            const command = commandInput.value.trim();
+            if (!command) return;
+            
+            outputDiv.textContent = '';
+            outputDiv.style.height = '200px';
+            ws.send(JSON.stringify({
+                action: 'start',
+                command: command
+            }));
+        }
+
+        function stopCommand() {
+            if (currentProcessId) {
+                ws.send(JSON.stringify({
+                    action: 'stop',
+                    process_id: currentProcessId
+                }));
+            }
+        }
+
+        commandInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                toggleCommand();
+            }
+        });
+
+        // Auto-focus input field
+        commandInput.focus();
+
+        function adjustHeight() {
+            const outputHeight = outputDiv.scrollHeight;
+            const maxHeight = window.innerHeight - 250;
+            
+            outputDiv.style.height = 'auto';
+            
+            const contentHeight = outputDiv.scrollHeight;
+            
+            if (contentHeight < 200) {
+                outputDiv.style.height = '200px';
+            } else if (contentHeight > maxHeight) {
+                outputDiv.style.height = maxHeight + 'px';
+            } else {
+                outputDiv.style.height = contentHeight + 'px';
+            }
+        }
+        
+        window.addEventListener('resize', adjustHeight);
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            switch(data.type) {
+                case 'started':
+                    currentProcessId = data.process_id;
+                    actionBtn.innerHTML = `
+                        <div class="button-content">
+                            <i class="fas fa-stop"></i>
+                            <span>Stop</span>
+                        </div>`;
+                    actionBtn.classList.add('stopping');
+                    actionBtn.title = 'Stop';
+                    break;
+                    
+                case 'output':
+                case 'error':
+                    outputDiv.textContent += data.data + '\n';
+                    outputDiv.scrollTop = outputDiv.scrollHeight;
+                    adjustHeight();
+                    break;
+                    
+                case 'stopped':
+                case 'terminated':
+                    if (currentProcessId) {
+                        const exitCode = data.exit_code;
+                        let statusHtml = '';
+                        
+                        if (exitCode === -9) {
+                            statusHtml = `
+                                <div class="command-end command-stopped">
+                                    <i class="fas fa-stop-circle"></i>
+                                    <span>Process stopped by user</span>
+                                    <span class="exit-code">terminated</span>
+                                </div>`;
+                        } else if (exitCode === 0) {
+                            statusHtml = `
+                                <div class="command-end command-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Process completed successfully</span>
+                                    <span class="exit-code">exit code: ${exitCode}</span>
+                                </div>`;
+                        } else {
+                            statusHtml = `
+                                <div class="command-end command-error">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>Process completed with error</span>
+                                    <span class="exit-code">exit code: ${exitCode}</span>
+                                </div>`;
+                        }
+                        
+                        outputDiv.innerHTML += statusHtml;
+                        actionBtn.innerHTML = `
+                            <div class="button-content">
+                                <i class="fas fa-play"></i>
+                                <span>Run</span>
+                            </div>`;
+                        actionBtn.classList.remove('stopping');
+                        actionBtn.title = 'Run';
+                        currentProcessId = null;
+                        outputDiv.scrollTop = outputDiv.scrollHeight;
+                    }
+                    break;
+            }
+        };
+
+        // Add clear button click event
+        clearBtn.addEventListener('click', function() {
+            commandInput.value = '';
+            clearBtn.style.display = 'none';
+            commandInput.focus();
+        });
+
+        // Show/hide clear button based on input content
+        commandInput.addEventListener('input', function() {
+            clearBtn.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Initially hide clear button
+        clearBtn.style.display = 'none';
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="geometricPrecision">
+    <g style="transform-origin: center;">
+        <circle cx="8" cy="8" r="7" fill="white" stroke="#2c3e50" stroke-width="0.8" vector-effect="non-scaling-stroke"/>
+        <g transform="scale(0.45) translate(9,9)">
+            <path fill="#2c3e50" d="M8.06 8.53L1.99 14.6a.75.75 0 0 1-1.06 0l-.7-.7a.75.75 0 0 1 0-1.06L5.03 8 .23 3.16a.75.75 0 0 1 0-1.06l.7-.7a.75.75 0 0 1 1.06 0l6.07 6.07a.75.75 0 0 1 0 1.06zM9.75 12.5h5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-.75.75h-5a.75.75 0 0 1-.75-.75v-1a.75.75 0 0 1 .75-.75z"/>
+        </g>
+    </g>
+</svg> 

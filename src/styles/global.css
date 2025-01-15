@@ -1,0 +1,32 @@
+/* Add clear button styles */
+.input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.command-input {
+  width: 100%;
+  padding-right: 30px; /* Leave space for clear button */
+}
+
+.clear-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 1; /* Ensure button is above input field */
+}
+
+.clear-button:hover {
+  color: #333;
+} 
