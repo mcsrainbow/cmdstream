@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/command-input.css';
 
 function CommandInput({ value, onChange, placeholder }) {
   // Function to handle clearing input

@@ -19,9 +19,9 @@ CmdStream is a WebSocket-based command-line streaming tool that enables command 
 
 ## Screenshot
 
-![Screenshot 01](screenshot_01.jpg)
+![Command Execution View](docs/command-execution-view.jpg)
 
-![Screenshot 02](screenshot_02.jpg)
+![Command Stream Interface](docs/command-stream-interface.jpg)
 
 ## Quick Start
 
